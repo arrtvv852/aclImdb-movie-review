@@ -1,0 +1,2 @@
+https://www.curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/	Sentiment Analysis with BERT and Transformers by Hugging Face using PyTorch and Python
+https://www.mdeditor.tw/pl/24Se/zh-tw	datasouce
