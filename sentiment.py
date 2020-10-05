@@ -1,10 +1,12 @@
 
 import torch
 import transformers
+import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 from torch import nn, optim
-from transformers import BertModel, BertTokenizer, AdamW, get_linear_schedule_with_warmup
+from transformers import BertModel, BertTokenizer
+from transformers import AdamW, get_linear_schedule_with_warmup
 
 
 PRE_TRAINED_MODEL_NAME = "bert-base-cased"
@@ -13,10 +15,12 @@ MAX_LEN = 160
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TOKENIZER = BertTokenizer.from_pretrained(PRE_TRAINED_MODEL_NAME)
-BERT_MODEL = BertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
+
 
 def clean_corpus(corpus):
-    """ do basic cleaning to the courpus, here only remove html content <br /> """
+    """
+    do basic cleaning to the courpus, here only remove html content <br />
+    """
     corpus.replace("<br />", " ")
     return corpus
 
@@ -53,11 +57,11 @@ class ReviewDataset(Dataset):
         }
 
 
-def create_data_loader(df, max_len, batch_size):
+def create_data_loader(dataframe, max_len, batch_size):
     """ convert dataset to pytorch dataloader format object """
     dataset = ReviewDataset(
-        comments=list(df.comment.to_numpy()),
-        targets=list(df.score.to_numpy()),
+        comments=list(dataframe.comment.to_numpy()),
+        targets=list(dataframe.score.to_numpy()),
         max_len=max_len
     )
     return DataLoader(
@@ -77,27 +81,27 @@ class SentimentClassifier(nn.Module):
 
     def forward(self, input_ids, attention_mask):
         _, pooled_output = self.bert(
-          input_ids=input_ids,
-          attention_mask=attention_mask
+            input_ids=input_ids,
+            attention_mask=attention_mask
         )
         output = self.drop(pooled_output)
         return self.out(output)
+
 
 def train_epoch(model,
                 data_loader,
                 loss_fn,
                 optimizer,
-                device,
                 scheduler,
                 n_examples):
     """ Main training process of bert sentiment classifier """
     model = model.train()
     losses = []
     correct_predictions = 0
-    for d in data_loader:
-        input_ids = d["input_ids"].to(device)
-        attention_mask = d["attention_mask"].to(device)
-        targets = d["targets"].to(device)
+    for _d in data_loader:
+        input_ids = _d["input_ids"].to(DEVICE)
+        attention_mask = _d["attention_mask"].to(DEVICE)
+        targets = _d["targets"].to(DEVICE)
         outputs = model(
             input_ids=input_ids,
             attention_mask=attention_mask
@@ -114,17 +118,93 @@ def train_epoch(model,
     return correct_predictions.double() / n_examples, np.mean(losses)
 
 
+def eval_model(model,
+               data_loader,
+               loss_fn,
+               n_examples):
+    """ Main evaluate process in training of bert sentiment classifier """
+    model = model.eval()
+
+    losses = []
+    correct_predictions = 0
+
+    with torch.no_grad():
+        for d in data_loader:
+            input_ids = d["input_ids"].to(DEVICE)
+            attention_mask = d["attention_mask"].to(DEVICE)
+            targets = d["targets"].to(DEVICE)
+
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask
+            )
+            _, preds = torch.max(outputs, dim=1)
+
+            loss = loss_fn(outputs, targets)
+
+            correct_predictions += torch.sum(preds == targets)
+            losses.append(loss.item())
+
+    return correct_predictions.double() / n_examples, np.mean(losses)
+
+
 if __name__ == "__main__":
-    df = pd.read_json("./data/train.json")
-    df.comment = df.comment.apply(clean_corpus)
+    TRAIN = pd.read_json("./data/train.json")
+    TRAIN = TRAIN.sample(frac=1).reset_index(drop=True)
+    TRAIN.comment = TRAIN.comment.apply(clean_corpus)
+    VAL = pd.read_json("./data/test.json")
+    VAL = VAL.sample(frac=1).reset_index(drop=True)
+    VAL = VAL.iloc[:int(len(VAL)/100)]
+    VAL.comment = TRAIN.comment.apply(clean_corpus)
     # sample_txt = df.comment[0]
     # train_data_loader = create_data_loader(df, MAX_LEN, BATCH_SIZE)
-    train_data_loader = create_data_loader(df, MAX_LEN, BATCH_SIZE)
-    data = next(iter(train_data_loader))
+    TRAIN_DATA_LOADER = create_data_loader(TRAIN, MAX_LEN, BATCH_SIZE)
+    VAL_DATA_LOADER = create_data_loader(VAL, MAX_LEN, BATCH_SIZE)
+    # data = next(iter(train_data_loader))
 
-    model = SentimentClassifier(len(range(1, 11)))
-    model.to(DEVICE)
+    MODEL = SentimentClassifier(len(range(1, 11)))
+    MODEL.to(DEVICE)
 
     # input_ids = data['input_ids'].to(DEVICE)
     # attention_mask = data['attention_mask'].to(DEVICE)
     # nn.functional.softmax(model(input_ids, attention_mask), dim=1)
+    EPOCHS = 10
+    OPTIMIZER = AdamW(MODEL.parameters(), lr=2e-5, correct_bias=False)
+    TOTAL_STEPS = len(TRAIN_DATA_LOADER) * EPOCHS
+    SCHEDULER = get_linear_schedule_with_warmup(
+        OPTIMIZER,
+        num_warmup_steps=0,
+        num_training_steps=TOTAL_STEPS
+    )
+    LOSS_FN = nn.CrossEntropyLoss().to(DEVICE)
+
+    BEST_ACCURACY = 0
+
+    for epoch in range(EPOCHS):
+        print(f'Epoch {epoch + 1}/{EPOCHS}')
+        print('-' * 10)
+
+        train_acc, train_loss = train_epoch(
+            MODEL,
+            TRAIN_DATA_LOADER,
+            LOSS_FN,
+            OPTIMIZER,
+            SCHEDULER,
+            len(TRAIN)
+        )
+
+        print(f'Train loss {train_loss} accuracy {train_acc}')
+
+        val_acc, val_loss = eval_model(
+            MODEL,
+            VAL_DATA_LOADER,
+            LOSS_FN,
+            len(VAL)
+        )
+
+        print(f'Val   loss {val_loss} accuracy {val_acc}')
+        print()
+
+        if val_acc > BEST_ACCURACY:
+            torch.save(MODEL.state_dict(), 'best_model_state.bin')
+            best_accuracy = val_acc
