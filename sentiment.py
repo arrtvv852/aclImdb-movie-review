@@ -162,7 +162,7 @@ if __name__ == "__main__":
     VAL_DATA_LOADER = create_data_loader(VAL, MAX_LEN, BATCH_SIZE)
     # data = next(iter(train_data_loader))
 
-    MODEL = SentimentClassifier(len(range(1, 11)))
+    MODEL = SentimentClassifier(len(range(11)))
     MODEL.to(DEVICE)
 
     # input_ids = data['input_ids'].to(DEVICE)
