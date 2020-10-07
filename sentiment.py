@@ -12,6 +12,7 @@ from transformers import AdamW, get_linear_schedule_with_warmup
 PRE_TRAINED_MODEL_NAME = "bert-base-cased"
 BATCH_SIZE = 16
 MAX_LEN = 160
+EPOCHS = 10
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 TOKENIZER = BertTokenizer.from_pretrained(PRE_TRAINED_MODEL_NAME)
@@ -168,7 +169,6 @@ if __name__ == "__main__":
     # input_ids = data['input_ids'].to(DEVICE)
     # attention_mask = data['attention_mask'].to(DEVICE)
     # nn.functional.softmax(model(input_ids, attention_mask), dim=1)
-    EPOCHS = 10
     OPTIMIZER = AdamW(MODEL.parameters(), lr=2e-5, correct_bias=False)
     TOTAL_STEPS = len(TRAIN_DATA_LOADER) * EPOCHS
     SCHEDULER = get_linear_schedule_with_warmup(

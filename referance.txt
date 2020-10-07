@@ -1,2 +1,4 @@
 https://www.curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/	Sentiment Analysis with BERT and Transformers by Hugging Face using PyTorch and Python
 https://www.mdeditor.tw/pl/24Se/zh-tw	datasouce
+https://towardsdatascience.com/nlp-extract-contextualized-word-embeddings-from-bert-keras-tf-67ef29f60a7b	NLP: COntexturalized word embeddings from BERT
+https://zhuanlan.zhihu.com/p/95594311	Chinese Embedding figure
