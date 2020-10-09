@@ -89,6 +89,24 @@ class SentimentClassifier(nn.Module):
         return self.out(output)
 
 
+def preds(model, text):
+    """
+    make prediction according to the text with the given model
+    """
+    encoding = TOKENIZER.encode_plus(
+        text,
+        add_special_tokens=True,
+        max_length=MAX_LEN,
+        return_token_type_ids=False,
+        pad_to_max_length=True,
+        return_attention_mask=True,
+        return_tensors='pt',
+    )
+    output = model.forward(encoding["input_ids"], encoding["attention_mask"])
+    _, preds = torch.max(output, dim=1)
+    return int(preds)
+
+
 def train_epoch(model,
                 data_loader,
                 loss_fn,
@@ -155,8 +173,9 @@ if __name__ == "__main__":
     TRAIN.comment = TRAIN.comment.apply(clean_corpus)
     VAL = pd.read_json("./data/test.json")
     VAL = VAL.sample(frac=1).reset_index(drop=True)
-    VAL = VAL.iloc[:int(len(VAL)/100)]
-    VAL.comment = TRAIN.comment.apply(clean_corpus)
+    VAL.comment = VAL.comment.apply(clean_corpus)
+    VAL = VAL.iloc[:500]
+    TRAIN = TRAIN.append(VAL[500:]).reset_index(drop=True)
     # sample_txt = df.comment[0]
     # train_data_loader = create_data_loader(df, MAX_LEN, BATCH_SIZE)
     TRAIN_DATA_LOADER = create_data_loader(TRAIN, MAX_LEN, BATCH_SIZE)
@@ -206,5 +225,5 @@ if __name__ == "__main__":
         print()
 
         if val_acc > BEST_ACCURACY:
-            torch.save(MODEL.state_dict(), 'best_model_state.bin')
+            MODEL.bert.save_pretrained("./")
             best_accuracy = val_acc
