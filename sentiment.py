@@ -20,6 +20,7 @@ TOKENIZER = BertTokenizer.from_pretrained(PRE_TRAINED_MODEL_NAME)
 
 def clean_corpus(corpus):
     """
+    清除電影評論中的html元素 <br />
     do basic cleaning to the courpus, here only remove html content <br />
     """
     corpus.replace("<br />", " ")
@@ -28,6 +29,7 @@ def clean_corpus(corpus):
 
 class ReviewDataset(Dataset):
     """
+    將資料集轉換為後續data DataLoader 需求的 pytorch Dataset形式
     Convert movie review dataframe into torch dataset instance
     """
     def __init__(self, comments, targets, max_len):
@@ -59,7 +61,10 @@ class ReviewDataset(Dataset):
 
 
 def create_data_loader(dataframe, max_len, batch_size):
-    """ convert dataset to pytorch dataloader format object """
+    """
+    將pytorch Dataset形式資料集包裝為data DataLoader
+    convert dataset to pytorch dataloader format object
+    """
     dataset = ReviewDataset(
         comments=list(dataframe.comment.to_numpy()),
         targets=list(dataframe.score.to_numpy()),
@@ -73,7 +78,10 @@ def create_data_loader(dataframe, max_len, batch_size):
 
 
 class SentimentClassifier(nn.Module):
-    """ Bert sentiment main model for review sentiment analyzer """
+    """
+    BERT電影影評評分分類模型的主體
+    Bert sentiment main model for review sentiment analyzer
+    """
     def __init__(self, n_classes):
         super(SentimentClassifier, self).__init__()
         self.bert = BertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
@@ -91,6 +99,7 @@ class SentimentClassifier(nn.Module):
 
 def preds(model, text):
     """
+    主樣的分類氣，將input電影評論輸入模型，將輸出轉化為預測評分
     make prediction according to the text with the given model
     """
     encoding = TOKENIZER.encode_plus(
@@ -113,7 +122,10 @@ def train_epoch(model,
                 optimizer,
                 scheduler,
                 n_examples):
-    """ Main training process of bert sentiment classifier """
+    """
+    電影評論分類器的訓練主流程
+    Main training process of bert sentiment classifier
+    """
     model = model.train()
     losses = []
     correct_predictions = 0
@@ -141,7 +153,10 @@ def eval_model(model,
                data_loader,
                loss_fn,
                n_examples):
-    """ Main evaluate process in training of bert sentiment classifier """
+    """
+    電影評論分類器的訓練時每個epoch評估訓練效能主流程
+    Main evaluate process in training of bert sentiment classifier
+    """
     model = model.eval()
 
     losses = []
@@ -174,8 +189,8 @@ if __name__ == "__main__":
     VAL = pd.read_json("./data/test.json")
     VAL = VAL.sample(frac=1).reset_index(drop=True)
     VAL.comment = VAL.comment.apply(clean_corpus)
-    VAL = VAL.iloc[:500]
     TRAIN = TRAIN.append(VAL[500:]).reset_index(drop=True)
+    VAL = VAL.iloc[:500]
     # sample_txt = df.comment[0]
     # train_data_loader = create_data_loader(df, MAX_LEN, BATCH_SIZE)
     TRAIN_DATA_LOADER = create_data_loader(TRAIN, MAX_LEN, BATCH_SIZE)
