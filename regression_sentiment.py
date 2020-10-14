@@ -249,16 +249,17 @@ if __name__ == "__main__":
 
         print(f'Train loss {train_loss} accuracy {train_acc}')
 
-        val_acc, val_loss = eval_model(
+        val_acc, _ = eval_model(
             MODEL,
             VAL_DATA_LOADER,
             LOSS_FN,
             len(VAL)
         )
 
-        print(f'Val   loss {val_loss} accuracy {val_acc}')
+        print(f'Val accuracy {val_acc}')
         print()
-
         if val_acc > BEST_ACCURACY:
-            MODEL.bert.save_pretrained("./")
+            torch.save(MODEL.state_dict(), 'best_model_state.bin')
             best_accuracy = val_acc
+    torch.save(MODEL.state_dict(), 'last_model_state.bin')
+
