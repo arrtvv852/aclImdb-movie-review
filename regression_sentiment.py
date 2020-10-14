@@ -55,7 +55,7 @@ class ReviewDataset(Dataset):
             'comment': comment,
             'input_ids': encoding['input_ids'].flatten(),
             'attention_mask': encoding['attention_mask'].flatten(),
-            'targets': torch.tensor(target, dtype=torch.long)
+            'targets': torch.tensor(target, dtype=torch.float)
         }
 
 
@@ -111,7 +111,7 @@ def preds(model, text):
         return_tensors='pt',
     )
     output = model.forward(encoding["input_ids"], encoding["attention_mask"])
-    _, preds = torch.max(output, dim=1)
+    _, preds = torch.squeeze(output, dim=1)
     return int(preds)
 
 
@@ -209,7 +209,8 @@ if __name__ == "__main__":
         num_warmup_steps=0,
         num_training_steps=TOTAL_STEPS
     )
-    LOSS_FN = nn.CrossEntropyLoss().to(DEVICE)
+    # LOSS_FN = nn.CrossEntropyLoss().to(DEVICE)
+    LOSS_FN = nn.MSELoss().to(DEVICE)
 
     BEST_ACCURACY = 0
 

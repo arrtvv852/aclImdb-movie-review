@@ -3,4 +3,4 @@ https://www.mdeditor.tw/pl/24Se/zh-tw	datasouce
 https://towardsdatascience.com/nlp-extract-contextualized-word-embeddings-from-bert-keras-tf-67ef29f60a7b	NLP: COntexturalized word embeddings from BERT
 https://zhuanlan.zhihu.com/p/95594311	Chinese Embedding figure
 https://leemeng.tw/attack_on_bert_transfer_learning_in_nlp.html	Bert Tokenize
-
+https://medium.com/udacity-pytorch-challengers/a-brief-overview-of-loss-functions-in-pytorch-c0ddb78068f7	pytorch regression model
