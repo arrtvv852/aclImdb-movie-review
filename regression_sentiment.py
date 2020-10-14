@@ -76,10 +76,30 @@ def create_data_loader(dataframe, max_len, batch_size):
     )
 
 
+class SentimentRegressor(nn.Module):
+    """
+    BERT電影影評評分回歸模型的主體
+    Bert sentiment regression model for review sentiment analyzer
+    """
+    def __init__(self):
+        super(SentimentRegressor, self).__init__()
+        self.bert = BertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
+        self.drop = nn.Dropout(p=0.2)
+        self.out = nn.Linear(self.bert.config.hidden_size, 1)
+
+    def forward(self, input_ids, attention_mask):
+        _, pooled_output = self.bert(
+            input_ids=input_ids,
+            attention_mask=attention_mask
+        )
+        output = self.drop(pooled_output)
+        return self.out(output)
+
+
 class SentimentClassifier(nn.Module):
     """
     BERT電影影評評分分類模型的主體
-    Bert sentiment main model for review sentiment analyzer
+    Bert sentiment classification model for review sentiment analyzer
     """
     def __init__(self, n_classes):
         super(SentimentClassifier, self).__init__()
@@ -136,8 +156,8 @@ def train_epoch(model,
             input_ids=input_ids,
             attention_mask=attention_mask
         )
-        _, preds = torch.max(outputs, dim=1)
-        loss = loss_fn(outputs, targets)
+        preds = torch.squeeze(outputs, dim=1)
+        loss = loss_fn(preds, targets)
         correct_predictions += torch.sum(preds == targets)
         losses.append(loss.item())
         loss.backward()
@@ -196,7 +216,7 @@ if __name__ == "__main__":
     VAL_DATA_LOADER = create_data_loader(VAL, MAX_LEN, BATCH_SIZE)
     # data = next(iter(train_data_loader))
 
-    MODEL = SentimentClassifier(len(range(11)))
+    MODEL = SentimentRegressor()
     MODEL.to(DEVICE)
 
     # input_ids = data['input_ids'].to(DEVICE)
