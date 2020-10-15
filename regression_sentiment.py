@@ -147,7 +147,6 @@ def train_epoch(model,
     """
     model = model.train()
     losses = []
-    correct_predictions = 0
     for _d in data_loader:
         input_ids = _d["input_ids"].to(DEVICE)
         attention_mask = _d["attention_mask"].to(DEVICE)
@@ -158,14 +157,13 @@ def train_epoch(model,
         )
         preds = torch.squeeze(outputs, dim=1)
         loss = loss_fn(preds, targets)
-        correct_predictions += torch.sum(preds == targets)
         losses.append(loss.item())
         loss.backward()
         nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
         scheduler.step()
         optimizer.zero_grad()
-    return correct_predictions.double() / n_examples, np.mean(losses)
+    return np.mean(losses)
 
 
 def eval_model(model,
@@ -179,7 +177,6 @@ def eval_model(model,
     model = model.eval()
 
     losses = []
-    correct_predictions = 0
 
     with torch.no_grad():
         for d in data_loader:
@@ -195,10 +192,9 @@ def eval_model(model,
 
             loss = loss_fn(outputs, targets)
 
-            correct_predictions += torch.sum(preds == targets)
             losses.append(loss.item())
 
-    return correct_predictions.double() / n_examples, np.mean(losses)
+    return np.mean(losses)
 
 
 if __name__ == "__main__":
@@ -232,13 +228,13 @@ if __name__ == "__main__":
     # LOSS_FN = nn.CrossEntropyLoss().to(DEVICE)
     LOSS_FN = nn.MSELoss().to(DEVICE)
 
-    BEST_ACCURACY = 0
+    BEST_LOSS = 100000000
 
     for epoch in range(EPOCHS):
         print(f'Epoch {epoch + 1}/{EPOCHS}')
         print('-' * 10)
 
-        train_acc, train_loss = train_epoch(
+        train_loss = train_epoch(
             MODEL,
             TRAIN_DATA_LOADER,
             LOSS_FN,
@@ -247,19 +243,18 @@ if __name__ == "__main__":
             len(TRAIN)
         )
 
-        print(f'Train loss {train_loss} accuracy {train_acc}')
+        print(f'Train MSE loss: {train_loss}')
 
-        val_acc, _ = eval_model(
+        val_loss = eval_model(
             MODEL,
             VAL_DATA_LOADER,
             LOSS_FN,
             len(VAL)
         )
 
-        print(f'Val accuracy {val_acc}')
+        print(f'Val MSE loss: {val_loss}')
         print()
-        if val_acc > BEST_ACCURACY:
+        if val_loss > BEST_LOSS:
             torch.save(MODEL.state_dict(), 'best_model_state.bin')
-            best_accuracy = val_acc
+            BEST_LOSS = val_loss
     torch.save(MODEL.state_dict(), 'last_model_state.bin')
-
