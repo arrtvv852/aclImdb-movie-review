@@ -102,7 +102,7 @@ class SentimentClassifier(nn.Module):
     Bert sentiment classification model for review sentiment analyzer
     """
     def __init__(self, n_classes):
-        super(SentimentClassifier, self).__init__()
+        super().__init__()
         self.bert = BertModel.from_pretrained(PRE_TRAINED_MODEL_NAME)
         self.drop = nn.Dropout(p=0.2)
         self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
@@ -115,24 +115,26 @@ class SentimentClassifier(nn.Module):
         output = self.drop(pooled_output)
         return self.out(output)
 
-
-def preds(model, text):
-    """
-    主樣的分類氣，將input電影評論輸入模型，將輸出轉化為預測評分
-    make prediction according to the text with the given model
-    """
-    encoding = TOKENIZER.encode_plus(
-        text,
-        add_special_tokens=True,
-        max_length=MAX_LEN,
-        return_token_type_ids=False,
-        pad_to_max_length=True,
-        return_attention_mask=True,
-        return_tensors='pt',
-    )
-    output = model.forward(encoding["input_ids"], encoding["attention_mask"])
-    _, preds = torch.squeeze(output, dim=1)
-    return int(preds)
+    def preds(self, text):
+        """
+        主要的分類器，將input電影評論輸入模型，將輸出轉化為預測評分
+        make prediction according to the text with the given model
+        """
+        encoding = TOKENIZER.encode_plus(
+            text,
+            add_special_tokens=True,
+            max_length=MAX_LEN,
+            return_token_type_ids=False,
+            pad_to_max_length=True,
+            return_attention_mask=True,
+            return_tensors='pt',
+        )
+        _, output = self.bert(
+            input_ids=encoding["input_ids"],
+            attention_mask=encoding["attention_mask"]
+        )
+        _, preds = torch.squeeze(output, dim=1)
+        return int(preds)
 
 
 def train_epoch(model,
