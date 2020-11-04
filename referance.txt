@@ -1,6 +1,14 @@
-https://www.curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/	Sentiment Analysis with BERT and Transformers by Hugging Face using PyTorch and Python
+hhttps://www.curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/	Sentiment Analysis with BERT and Transformers by Hugging Face using PyTorch and Python
 https://www.mdeditor.tw/pl/24Se/zh-tw	datasouce
 https://towardsdatascience.com/nlp-extract-contextualized-word-embeddings-from-bert-keras-tf-67ef29f60a7b	NLP: COntexturalized word embeddings from BERT
 https://zhuanlan.zhihu.com/p/95594311	Chinese Embedding figure
 https://leemeng.tw/attack_on_bert_transfer_learning_in_nlp.html	Bert Tokenize
 https://medium.com/udacity-pytorch-challengers/a-brief-overview-of-loss-functions-in-pytorch-c0ddb78068f7	pytorch regression model
+ttps://www.curiousily.com/posts/sentiment-analysis-with-bert-and-hugging-face-using-pytorch-and-python/	Sentiment Analysis with BERT and Transformers by Hugging Face using PyTorch and Python
+https://www.mdeditor.tw/pl/24Se/zh-tw	datasouce
+https://towardsdatascience.com/nlp-extract-contextualized-word-embeddings-from-bert-keras-tf-67ef29f60a7b	NLP: COntexturalized word embeddings from BERT
+https://zhuanlan.zhihu.com/p/95594311	Chinese Embedding figure
+https://leemeng.tw/attack_on_bert_transfer_learning_in_nlp.html	Bert Tokenize
+https://medium.com/udacity-pytorch-challengers/a-brief-overview-of-loss-functions-in-pytorch-c0ddb78068f7	pytorch regression model
+https://medium.com/手寫筆記/使用-tensorflow-學習-softmax-回歸-softmax-regression-41a12b619f04	softmax instruction
+https://codertw.com/程式語言/404042/ Regression evaluate

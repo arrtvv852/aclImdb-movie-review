@@ -87,6 +87,12 @@ class SentimentClassifier(nn.Module):
         self.drop = nn.Dropout(p=0.2)
         self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
 
+    def load_model(self, path):
+        """
+        載入先前訓練好的權重檔
+        """
+        self.load_state_dict(torch.load(path, map_location=DEVICE))
+
     def forward(self, input_ids, attention_mask):
         _, pooled_output = self.bert(
             input_ids=input_ids,

@@ -132,3 +132,5 @@ dmypy.json
 data/*
 .bin
 models/*
+classification_model/*
+regression_model/*
